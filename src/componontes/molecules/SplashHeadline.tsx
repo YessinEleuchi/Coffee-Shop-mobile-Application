@@ -7,14 +7,24 @@ type Props = { title: string; subtitle: string };
 export default function SplashHeadline({ title, subtitle }: Props) {
     return (
         <View style={styles.wrap}>
-            <AppText variant="title" style={styles.titlePad}>{title}</AppText>
-            <AppText variant="body" style={styles.bodyPad}>{subtitle}</AppText>
+            <AppText variant="title" style={styles.title}>{title}</AppText>
+            <AppText variant="body" style={styles.body}>{subtitle}</AppText>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
     wrap: { marginTop: 30 },
-    titlePad: { paddingHorizontal: 60 },
-    bodyPad: { paddingHorizontal: 60, marginTop: 10 },
+    title: {
+    fontSize: 24,
+        fontWeight: "600",
+        color: "white",
+        textAlign: "center",
+        paddingHorizontal: 60,},
+    body: { fontSize: 14,
+        color: "white",
+        textAlign: "center",
+        paddingHorizontal: 60,
+        opacity: 0.9,
+        marginTop: 10 },
 });
