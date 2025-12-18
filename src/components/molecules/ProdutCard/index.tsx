@@ -4,29 +4,32 @@ import {
     Image,
     StyleSheet,
     ImageSourcePropType,
-    Pressable,
     StyleProp,
     ViewStyle,
     ImageStyle,
-    TextStyle, TouchableOpacity,
+    TextStyle,
+    TouchableOpacity,
 } from "react-native";
-import {IconButton} from "../../atoms";
-import { AppText } from "../../atoms";
+import { AppText, IconButton } from "../../atoms";
 
 export interface Product {
-    id: string,
-    name: string,
-    subtitle: string,
-    price: string,
-    image: ImageSourcePropType,
+    id: string;
+    name: string;
+    subtitle: string;
+    price: string;
+    image: ImageSourcePropType;
+    isFavorite?: boolean;
 }
 
 type Props = {
     product: Product;
     onPressCard: (id: string) => void;
     onPressAdd: (id: string) => void;
-
-
+    favoriteMode?: "hidden" | "toggle";
+    isFavorite?: boolean;
+    favIconOff?: ImageSourcePropType;
+    favIconOn?: ImageSourcePropType;
+    onToggleFavorite?: (id: string) => void;
     cardStyle?: StyleProp<ViewStyle>;
     imageWrapStyle?: StyleProp<ViewStyle>;
     imageStyle?: StyleProp<ImageStyle>;
@@ -40,6 +43,13 @@ export default function ProductCard({
                                         product,
                                         onPressCard,
                                         onPressAdd,
+
+                                        favoriteMode = "hidden",
+                                        isFavorite,
+                                        favIconOff,
+                                        favIconOn,
+                                        onToggleFavorite,
+
                                         cardStyle,
                                         imageWrapStyle,
                                         imageStyle,
@@ -48,33 +58,66 @@ export default function ProductCard({
                                         priceStyle,
                                         addButtonStyle,
                                     }: Props) {
+    // ✅ source de vérité : prop isFavorite si fournie, sinon product.isFavorite
+    const fav = isFavorite ?? product.isFavorite ?? false;
+
     return (
-        <TouchableOpacity activeOpacity={0.7}
-           // onPress={() => onPressCard(product.id)}
+        <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => onPressCard(product.id)}
             style={[styles.card, cardStyle]}
         >
             {/* Image */}
             <View style={[styles.imageWrap, imageWrapStyle]}>
-                <Image source={product.image} style={[styles.image, imageStyle]} resizeMode="cover" />
+                <Image
+                    source={product.image}
+                    style={[styles.image, imageStyle]}
+                    resizeMode="cover"
+                />
+
             </View>
 
             {/* Title + subtitle */}
+            {/* Title + subtitle */}
             <View style={styles.info}>
-                <AppText style={[styles.title, titleStyle]}>{product.name}</AppText>
+                <View style={styles.titleRow}>
+                    <AppText style={[styles.title, titleStyle]}>{product.name}</AppText>
+
+                    {favoriteMode === "toggle" && favIconOff && favIconOn && (
+                        <IconButton
+                            activeOpacity={0.6}
+                            style={styles.favInlineBtn}
+                            onPress={(e) => {
+                                e.stopPropagation?.();
+                                onToggleFavorite?.(product.id);
+                            }}
+                        >
+                            <Image
+                                source={fav ? favIconOn : favIconOff}
+                                style={styles.favInlineIcon}
+                                resizeMode="contain"
+                            />
+                        </IconButton>
+                    )}
+                </View>
+
                 <AppText style={[styles.subtitle, subtitleStyle]}>{product.subtitle}</AppText>
             </View>
+
 
             {/* Bottom row */}
             <View style={styles.bottom}>
                 <AppText style={[styles.price, priceStyle]}>{product.price}</AppText>
 
-                {/* ✅ le + doit être cliquable sans déclencher la card */}
-                <TouchableOpacity activeOpacity={0.7}
+                <IconButton
                     style={[styles.addBtn, addButtonStyle]}
-                    onPress={() => onPressAdd(product.id)}
+                    onPress={(e: any) => {
+                        e.stopPropagation?.(); // ✅ ne déclenche pas la card
+                        onPressAdd(product.id);
+                    }}
                 >
                     <AppText style={styles.plus}>+</AppText>
-                </TouchableOpacity>
+                </IconButton>
             </View>
         </TouchableOpacity>
     );
@@ -95,10 +138,27 @@ const styles = StyleSheet.create({
         shadowRadius: 16,
         elevation: 8,
     },
+
     imageWrap: { borderRadius: 22, overflow: "hidden" },
     image: { width: "100%", height: 120 },
 
     info: { marginTop: 10, paddingHorizontal: 6 },
+
+    titleRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+    },
+
+    favInlineBtn: {
+        padding: 4,
+        marginLeft: 10,
+    },
+
+    favInlineIcon: {
+        width: 16,
+        height: 16,
+    },
     title: { fontSize: 20, fontWeight: "700", color: "#0F172A" },
     subtitle: { marginTop: 6, fontSize: 13, color: "#6B7280" },
 

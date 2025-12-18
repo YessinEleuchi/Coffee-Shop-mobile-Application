@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
-import {Image, ScrollView, StyleSheet, TouchableOpacity, View} from "react-native";
-import {profile, search, filter, coffee, capucin, add, faviourateMenu, fav} from "../../../assets";
+import {ScrollView, StyleSheet, View} from "react-native";
+import {profile, search, filter, coffee, capucin,fav,favicon} from "../../../assets";
 import { HomeHeader, SearchBar } from "../../molecules";
 import {Categories, ProductsCarousel} from "../../organismes";
 import { AppText } from "../../atoms";
@@ -52,6 +52,10 @@ const Home: React.FC = () => {
                     containerStyle={{ marginHorizontal: 30 }}
                 />
             </View>
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingBottom: 120 }}
+            >
 
             <Categories
                 items={categories}
@@ -65,11 +69,22 @@ const Home: React.FC = () => {
                 onOpenProduct={(id) => console.log("open product", id)}
                 onAddToCart={(id) => console.log("add to cart", id)}
             />
-
+            <AppText style={styles.heading}>Special Offer</AppText>
+            <ProductsCarousel
+                products={products}
+                onOpenProduct={(id) => console.log("open product", id)}
+                onAddToCart={(id) => console.log("add to cart", id)}
+                favoriteMode="toggle"
+                favIconOff={fav}
+                favIconOn={favicon}
+                onToggleFavorite={(id) => console.log("add to fav", id)}
+            />
+            </ScrollView>
         </View>
     );
 };
 const styles = StyleSheet.create({
+    heading: { marginHorizontal: 30, fontWeight: "700", color: "#0F172A" },
 });
 
 export default Home;
