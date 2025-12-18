@@ -1,0 +1,9 @@
+export const add = require("./add.png");
+export const filter = require("./filter.png");
+export const notif = require("./notif.png");
+export const map = require("./map.png");
+export const star = require("./star.png");
+export const favicon = require("./favicon.png");
+export const faviourateMenu = require("./faviourate menu.png");
+export const coffee = require("./coffee.png");
+export const search = require("./search.png");
