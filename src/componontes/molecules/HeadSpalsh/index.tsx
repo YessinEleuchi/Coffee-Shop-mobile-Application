@@ -1,10 +1,10 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
-import AppText from "../atoms/AppText";
+import {AppText} from "../../atoms";
 
 type Props = { title: string; subtitle: string };
 
-export default function SplashHeadline({ title, subtitle }: Props) {
+const  HeadSplash: React.FC<Props>=({ title, subtitle }: Props)=> {
     return (
         <View style={styles.wrap}>
             <AppText variant="title" style={styles.title}>{title}</AppText>
@@ -12,6 +12,7 @@ export default function SplashHeadline({ title, subtitle }: Props) {
         </View>
     );
 }
+export default HeadSplash;
 
 const styles = StyleSheet.create({
     wrap: { marginTop: 30 },

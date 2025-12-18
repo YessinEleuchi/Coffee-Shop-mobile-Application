@@ -1,4 +1,3 @@
-import React from "react";
 import { View, Image, StyleSheet, ImageSourcePropType } from "react-native";
 
 type Props = { source: ImageSourcePropType };

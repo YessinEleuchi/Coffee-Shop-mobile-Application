@@ -4,7 +4,7 @@ import {
     TouchableOpacityProps,
     TextStyle
 } from "react-native";
-import AppText from "../atoms/AppText";
+import {AppText} from "../../atoms";
 
 export interface IButton extends TouchableOpacityProps {
     title: string;

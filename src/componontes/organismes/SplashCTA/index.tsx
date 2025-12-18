@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet } from "react-native";
-import AppButton from "../molecules/AppButton";
+import {AppButton} from "../../molecules";
 
 type Props = { onPress: () => void };
 
