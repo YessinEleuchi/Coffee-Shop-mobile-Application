@@ -7,3 +7,4 @@ export const favicon = require("./favicon.png");
 export const faviourateMenu = require("./faviourate menu.png");
 export const coffee = require("./coffee.png");
 export const search = require("./search.png");
+export const fav = require("./fav.png");
