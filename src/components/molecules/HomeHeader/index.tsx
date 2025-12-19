@@ -1,6 +1,7 @@
 import React from "react";
 import {View, Image, StyleSheet, ImageSourcePropType, Text, TextInput} from "react-native";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import {AppText} from "../../atoms";
 
 type Props = {
     avatar: ImageSourcePropType;
@@ -26,6 +27,9 @@ export default function HomeHeader({ avatar, location, onPressNotif }: Props) {
                 style={styles.bell}
             />
         </View>
+            <AppText style={{ marginHorizontal: 30, marginTop: 15, fontWeight: "700", color: "#0F172A" }}>
+                Good Morning, Yessine
+            </AppText>
 
         </>
 

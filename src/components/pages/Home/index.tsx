@@ -37,9 +37,7 @@ const Home: React.FC = () => {
         <View style={{ flex: 1 }}>
             <HomeHeader avatar={profile} location="Sfax, Tunisia" />
 
-            <AppText style={{ marginHorizontal: 30, marginTop: 15, fontWeight: "700", color: "#0F172A" }}>
-                Good Morning, Yessine
-            </AppText>
+
 
             <View style={{ marginTop: 16 }}>
                 <SearchBar
