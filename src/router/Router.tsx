@@ -6,7 +6,7 @@ import SplashScreen from '../components/pages/SplashScreen';
 import Home from '../components/pages/Home';
 import Profile from '../components/pages/Profile';
 import Favorite from '../components/pages/Favorite';
-import {Cart} from '../components/pages';
+import {Cart,LoginScreen} from '../components/pages';
 
 import {BottomTab} from '../components/molecules';
 
@@ -37,6 +37,7 @@ const MainApp = () => {
 };
 
 const Router: React.FC = () => {
+    // @ts-ignore
     return (
         <Stack.Navigator screenOptions={{ headerShown: false }}>
             <Stack.Screen name="SplashScreen" component={SplashScreen} />
