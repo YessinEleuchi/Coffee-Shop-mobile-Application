@@ -6,7 +6,7 @@ import SearchBar from "./SearchBar";
 import ButtonCat from "./ButtonCat";
 import {Product} from "./ProdutCard";
 import ProductCard from "./ProdutCard";
-
+import CartItemRow from "./CartItemRow";
 export {
     AppButton,
     BottomTab,
@@ -16,4 +16,5 @@ export {
     ButtonCat,
     Product,
     ProductCard,
+    CartItemRow,
 }
