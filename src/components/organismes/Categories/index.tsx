@@ -2,16 +2,15 @@ import React from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { AppText } from "../../atoms";
 import {ButtonCat} from "../../molecules";
+import {coffee} from "../../../assets";
+import {Category} from "../../../lib/types";
+import {BASE_URL} from "../../../lib/api";
 
-export type CategoryItem = {
-    id: string;
-    title: string;
-    icon: any;
-};
+
 
 type Props = {
     title?: string;
-    items: CategoryItem[];
+    items: Category[];
     selectedId: string;
     onSelect: (id: string) => void;
 };
@@ -35,7 +34,7 @@ export default function Categories({
                     <ButtonCat
                         key={it.id}
                         title={it.title}
-                        icon={it.icon}
+                        icon={{ uri: BASE_URL +"/"+ it.icon }}
                         active={it.id === selectedId}
                         onPress={() => onSelect(it.id)}
                     />

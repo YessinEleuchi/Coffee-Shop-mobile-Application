@@ -3,41 +3,62 @@ import {
     View,
     Image,
     StyleSheet,
-    ImageSourcePropType,
     TouchableOpacity,
     TouchableOpacityProps,
+    ImageSourcePropType,
 } from "react-native";
 import { AppText } from "../../atoms";
 
 type Props = TouchableOpacityProps & {
     title: string;
-    icon: ImageSourcePropType;
+    icon?: string | ImageSourcePropType;
     active?: boolean;
 };
 
+function isHttpUrl(v: string) {
+    return /^https?:\/\//i.test(v);
+}
+
 export default function ButtonCat({ title, icon, active = false, style, ...props }: Props) {
+    const renderIcon = () => {
+        if (!icon) return null;
+
+        // ✅ icon URI / emoji
+        if (typeof icon === "string") {
+            // URL => Image uri
+            if (isHttpUrl(icon)) {
+                return (
+                    <Image
+                        source={{ uri: icon }}
+                        style={[styles.icon, active && styles.iconActive]}
+                        resizeMode="contain"
+                    />
+                );
+            }
+
+            // emoji (ou texte court) => Text
+            return <AppText style={[styles.emoji, active && styles.emojiActive]}>{icon}</AppText>;
+        }
+
+        // ✅ local image require()
+        return (
+            <Image
+                source={icon}
+                style={[styles.icon, active && styles.iconActive]}
+                resizeMode="contain"
+            />
+        );
+    };
+
     return (
         <TouchableOpacity
             activeOpacity={0.7}
             {...props}
-            style={[
-                styles.base,
-                active ? styles.active : styles.inactive,
-                style,
-            ]}
+            style={[styles.base, active ? styles.active : styles.inactive, style]}
         >
             <View style={styles.row}>
-                <Image
-                    source={icon}
-                    style={[styles.icon, active && styles.iconActive]}
-                    resizeMode="contain"
-                />
-                <AppText
-                    style={[
-                        styles.text,
-                        active ? styles.textActive : styles.textInactive,
-                    ]}
-                >
+                {renderIcon()}
+                <AppText style={[styles.text, active ? styles.textActive : styles.textInactive]}>
                     {title}
                 </AppText>
             </View>
@@ -58,6 +79,9 @@ const styles = StyleSheet.create({
     icon: { width: 16, height: 16, tintColor: "#00512C" },
     iconActive: { tintColor: "white" },
 
+    emoji: { fontSize: 16, lineHeight: 18 },
+    emojiActive: { color: "white" },
+
     text: { fontSize: 12, fontWeight: "600" },
     textActive: { color: "white" },
     textInactive: { color: "#0F172A" },
@@ -65,12 +89,10 @@ const styles = StyleSheet.create({
     active: { backgroundColor: "#00512C" },
     inactive: {
         backgroundColor: "white",
-        // shadow iOS
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 3 },
         shadowOpacity: 0.08,
         shadowRadius: 6,
-        // shadow Android
         elevation: 3,
     },
 });

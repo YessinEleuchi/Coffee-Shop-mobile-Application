@@ -4,7 +4,6 @@ import HeadSplash from "./HeadSpalsh";
 import HomeHeader from "./HomeHeader";
 import SearchBar from "./SearchBar";
 import ButtonCat from "./ButtonCat";
-import {Product} from "./ProdutCard";
 import ProductCard from "./ProdutCard";
 import CartItemRow from "./CartItemRow";
 export {
@@ -14,7 +13,6 @@ export {
     HomeHeader,
     SearchBar,
     ButtonCat,
-    Product,
     ProductCard,
     CartItemRow,
 }

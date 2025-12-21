@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
     View,
     Image,
@@ -11,25 +11,22 @@ import {
     TouchableOpacity,
 } from "react-native";
 import { AppText, IconButton } from "../../atoms";
-
-export interface Product {
-    id: string;
-    name: string;
-    subtitle: string;
-    price: string;
-    image: ImageSourcePropType;
-    isFavorite?: boolean;
-}
+import type { Product } from "../../../lib/types";
+import { BASE_URL } from "../../../lib/api";
 
 type Props = {
     product: Product;
     onPressCard: (id: string) => void;
     onPressAdd: (id: string) => void;
+
     favoriteMode?: "hidden" | "toggle";
-    isFavorite?: boolean;
+    isFavorite?: boolean; // optionnel: override depuis parent
     favIconOff?: ImageSourcePropType;
     favIconOn?: ImageSourcePropType;
     onToggleFavorite?: (id: string) => void;
+
+    favoriteLoading?: boolean; // ✅ bloque le clic pendant request
+
     cardStyle?: StyleProp<ViewStyle>;
     imageWrapStyle?: StyleProp<ViewStyle>;
     imageStyle?: StyleProp<ImageStyle>;
@@ -38,6 +35,20 @@ type Props = {
     priceStyle?: StyleProp<TextStyle>;
     addButtonStyle?: StyleProp<ViewStyle>;
 };
+
+function formatDT(price: number) {
+    if (Number.isFinite(price)) return `${price.toFixed(3)} DT`;
+    return "—";
+}
+
+function resolveImageUri(image?: string) {
+    if (!image) return "";
+    // déjà une URL complète
+    if (/^https?:\/\//i.test(image)) return image;
+    // chemin relatif backend: uploads/...
+    const slash = image.startsWith("/") ? "" : "/";
+    return `${BASE_URL}${slash}${image}`;
+}
 
 export default function ProductCard({
                                         product,
@@ -49,6 +60,7 @@ export default function ProductCard({
                                         favIconOff,
                                         favIconOn,
                                         onToggleFavorite,
+                                        favoriteLoading = false,
 
                                         cardStyle,
                                         imageWrapStyle,
@@ -58,8 +70,14 @@ export default function ProductCard({
                                         priceStyle,
                                         addButtonStyle,
                                     }: Props) {
-    // ✅ source de vérité : prop isFavorite si fournie, sinon product.isFavorite
-    const fav = isFavorite ?? product.isFavorite ?? false;
+    const fav = isFavorite ?? (product as any)?.isFavorite ?? false;
+
+    const priceLabel = useMemo(() => {
+        const p = (product as any).price;
+        return typeof p === "number" ? formatDT(p) : String(p ?? "");
+    }, [product]);
+
+    const imageUri = useMemo(() => resolveImageUri(product.image), [product.image]);
 
     return (
         <TouchableOpacity
@@ -69,50 +87,50 @@ export default function ProductCard({
         >
             {/* Image */}
             <View style={[styles.imageWrap, imageWrapStyle]}>
-                <Image
-                    source={product.image}
-                    style={[styles.image, imageStyle]}
-                    resizeMode="cover"
-                />
-
+                <Image source={imageUri ? { uri: imageUri } : undefined}
+                       style={[styles.image, imageStyle]}
+                       resizeMode="cover" />
             </View>
 
             {/* Title + subtitle */}
-            {/* Title + subtitle */}
             <View style={styles.info}>
                 <View style={styles.titleRow}>
-                    <AppText style={[styles.title, titleStyle]}>{product.name}</AppText>
+                    <AppText style={[styles.title, titleStyle]} numberOfLines={1}>
+                        {product.name}
+                    </AppText>
 
                     {favoriteMode === "toggle" && favIconOff && favIconOn && (
-                        <IconButton
+                        <TouchableOpacity
                             activeOpacity={0.6}
                             style={styles.favInlineBtn}
-                            onPress={(e) => {
+                            disabled={favoriteLoading}
+                            onPress={(e: any) => {
                                 e.stopPropagation?.();
-                                onToggleFavorite?.(product.id);
+                                if (!favoriteLoading) onToggleFavorite?.(product.id);
                             }}
                         >
                             <Image
                                 source={fav ? favIconOn : favIconOff}
-                                style={styles.favInlineIcon}
+                                style={[styles.favInlineIcon, favoriteLoading && { opacity: 0.5 }]}
                                 resizeMode="contain"
                             />
-                        </IconButton>
+                        </TouchableOpacity>
                     )}
                 </View>
 
-                <AppText style={[styles.subtitle, subtitleStyle]}>{product.subtitle}</AppText>
+                <AppText style={[styles.subtitle, subtitleStyle]} numberOfLines={1}>
+                    {product.subtitle}
+                </AppText>
             </View>
-
 
             {/* Bottom row */}
             <View style={styles.bottom}>
-                <AppText style={[styles.price, priceStyle]}>{product.price}</AppText>
+                <AppText style={[styles.price, priceStyle]}>{priceLabel}</AppText>
 
                 <IconButton
                     style={[styles.addBtn, addButtonStyle]}
                     onPress={(e: any) => {
-                        e.stopPropagation?.(); // ✅ ne déclenche pas la card
+                        e.stopPropagation?.();
                         onPressAdd(product.id);
                     }}
                 >
@@ -140,7 +158,7 @@ const styles = StyleSheet.create({
     },
 
     imageWrap: { borderRadius: 22, overflow: "hidden" },
-    image: { width: "100%", height: 120 },
+    image: { width: "100%", height: 120, backgroundColor: "#F1F5F9" },
 
     info: { marginTop: 10, paddingHorizontal: 6 },
 
@@ -150,16 +168,10 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
     },
 
-    favInlineBtn: {
-        padding: 4,
-        marginLeft: 10,
-    },
+    favInlineBtn: { padding: 4, marginLeft: 10 },
+    favInlineIcon: { width: 16, height: 16 },
 
-    favInlineIcon: {
-        width: 16,
-        height: 16,
-    },
-    title: { fontSize: 20, fontWeight: "700", color: "#0F172A" },
+    title: { fontSize: 20, fontWeight: "700", color: "#0F172A", flex: 1, marginRight: 8 },
     subtitle: { marginTop: 6, fontSize: 13, color: "#6B7280" },
 
     bottom: {

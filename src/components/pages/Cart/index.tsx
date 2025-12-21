@@ -2,12 +2,6 @@ import React, { useMemo } from "react";
 import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
 import { useShopStore } from "../../../stores/useShopStore";
 
-const parsePrice = (price: string) => {
-    // "12 DT" -> 12
-    const n = Number(price.replace(/[^\d.]/g, ""));
-    return Number.isFinite(n) ? n : 0;
-};
-
 const Cart: React.FC = () => {
     const cart = useShopStore((s) => s.cart);
     const incQty = useShopStore((s) => s.incQty);
@@ -17,7 +11,10 @@ const Cart: React.FC = () => {
     const items = useMemo(() => Object.values(cart), [cart]);
 
     const total = useMemo(() => {
-        return items.reduce((sum, it) => sum + parsePrice(it.product.price) * it.qty, 0);
+        return items.reduce((sum, it) => {
+            const price = typeof it.product.price === "number" ? it.product.price : Number(it.product.price) || 0;
+            return sum + price * it.qty;
+        }, 0);
     }, [items]);
 
     if (items.length === 0) {
@@ -38,12 +35,17 @@ const Cart: React.FC = () => {
                 </TouchableOpacity>
             </View>
 
-            {/* ✅ Liste simple */}
             {items.map((it) => (
                 <View key={it.product.id} style={styles.row}>
                     <View style={{ flex: 1 }}>
                         <Text style={styles.name}>{it.product.name}</Text>
                         <Text style={styles.sub}>{it.product.subtitle}</Text>
+
+                        {/* ✅ optionnel: afficher prix unitaire */}
+                        <Text style={styles.unitPrice}>
+                            {((typeof it.product.price === "number" ? it.product.price : Number(it.product.price) || 0)).toFixed(3)}{" "}
+                            DT
+                        </Text>
                     </View>
 
                     <View style={styles.qtyBox}>
@@ -62,7 +64,7 @@ const Cart: React.FC = () => {
 
             <View style={styles.footer}>
                 <Text style={styles.totalLabel}>Total</Text>
-                <Text style={styles.totalValue}>{total.toFixed(2)} DT</Text>
+                <Text style={styles.totalValue}>{total.toFixed(3)} DT</Text>
             </View>
         </View>
     );
@@ -94,6 +96,7 @@ const styles = StyleSheet.create({
     },
     name: { fontSize: 16, fontWeight: "800", color: "#0F172A" },
     sub: { marginTop: 3, fontSize: 12, color: "#64748B" },
+    unitPrice: { marginTop: 6, fontSize: 12, fontWeight: "800", color: "#00512C" },
 
     qtyBox: { flexDirection: "row", alignItems: "center", gap: 10 },
     qtyBtn: {

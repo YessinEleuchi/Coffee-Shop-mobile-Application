@@ -1,84 +1,94 @@
 import { create } from "zustand";
-import type { ImageSourcePropType } from "react-native";
+import type { Category, Product } from "../lib/types";
+import { CatalogService } from "../services/catalog.service";
 
-export type Product = {
-    id: string;
-    name: string;
-    subtitle: string;
-    price: string;
-    image: ImageSourcePropType;
-    categoryId?: string;
-    isFavorite?: boolean;
-};
-
-type CartItem = { product: Product; qty: number };
-
-type ShopState = {
+type ShopStore = {
+    categories: Category[];
     products: Product[];
-    cart: Record<string, CartItem>;
-    setProducts: (products: Product[]) => void;
-    toggleFavorite: (id: string) => void;
+
+    loading: boolean;
+    error: string | null;
+
+    fetchCategories: () => Promise<void>;
+    fetchProducts: () => Promise<void>;
+    fetchProductsByCategory: (categoryId: string) => Promise<void>;
+
+    // ✅ cart (tu l'utilises déjà)
+    cart: Record<string, { product: Product; qty: number }>;
     addToCart: (id: string) => void;
     incQty: (id: string) => void;
     decQty: (id: string) => void;
-    removeFromCart: (id: string) => void;
+    clearCart: () => void;
 };
 
-export const useShopStore = create<ShopState>((set, get) => ({
+export const useShopStore = create<ShopStore>((set, get) => ({
+    categories: [],
     products: [],
+
+    loading: false,
+    error: null,
+
+    fetchCategories: async () => {
+        try {
+            set({ loading: true, error: null });
+            const categories = await CatalogService.getCategories();
+            set({ categories, loading: false });
+        } catch (e: any) {
+            set({ loading: false, error: e?.message || "Erreur categories" });
+        }
+    },
+
+    fetchProducts: async () => {
+        try {
+            set({ loading: true, error: null });
+            const products = await CatalogService.getProducts();
+            set({ products, loading: false });
+        } catch (e: any) {
+            set({ loading: false, error: e?.message || "Erreur produits" });
+        }
+    },
+
+    fetchProductsByCategory: async (categoryId: string) => {
+        try {
+            set({ loading: true, error: null });
+            const products = await CatalogService.getProductsByCategory(categoryId);
+            set({ products, loading: false });
+        } catch (e: any) {
+            set({ loading: false, error: e?.message || "Erreur produits par catégorie" });
+        }
+    },
+
+    // ---------------- CART ----------------
     cart: {},
-
-    setProducts: (products) => set({ products }),
-
-    toggleFavorite: (id) =>
-        set((state) => ({
-            products: state.products.map((p) =>
-                p.id === id ? { ...p, isFavorite: !p.isFavorite } : p
-            ),
-        })),
 
     addToCart: (id) => {
         const p = get().products.find((x) => x.id === id);
         if (!p) return;
 
-        set((state) => {
-            const existing = state.cart[id];
-            return {
-                cart: {
-                    ...state.cart,
-                    [id]: existing
-                        ? { ...existing, qty: existing.qty + 1 }
-                        : { product: p, qty: 1 },
-                },
-            };
-        });
+        const cart = { ...get().cart };
+        const existing = cart[id];
+
+        cart[id] = existing ? { product: p, qty: existing.qty + 1 } : { product: p, qty: 1 };
+        set({ cart });
     },
 
-    incQty: (id) =>
-        set((state) => {
-            const it = state.cart[id];
-            if (!it) return state;
-            return { cart: { ...state.cart, [id]: { ...it, qty: it.qty + 1 } } };
-        }),
+    incQty: (id) => {
+        const cart = { ...get().cart };
+        const it = cart[id];
+        if (!it) return;
+        cart[id] = { ...it, qty: it.qty + 1 };
+        set({ cart });
+    },
 
-    decQty: (id) =>
-        set((state) => {
-            const it = state.cart[id];
-            if (!it) return state;
+    decQty: (id) => {
+        const cart = { ...get().cart };
+        const it = cart[id];
+        if (!it) return;
+        const nextQty = it.qty - 1;
+        if (nextQty <= 0) delete cart[id];
+        else cart[id] = { ...it, qty: nextQty };
+        set({ cart });
+    },
 
-            if (it.qty <= 1) {
-                const copy = { ...state.cart };
-                delete copy[id];
-                return { cart: copy };
-            }
-
-            return { cart: { ...state.cart, [id]: { ...it, qty: it.qty - 1 } } };
-        }),
-
-    removeFromCart: (id) =>
-        set((state) => {
-            const copy = { ...state.cart };
-            delete copy[id];
-            return { cart: copy };
-        }),
+    clearCart: () => set({ cart: {} }),
 }));

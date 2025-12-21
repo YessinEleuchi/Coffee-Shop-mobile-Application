@@ -7,7 +7,9 @@ import {
     ViewStyle,
     Text,
 } from "react-native";
-import { ProductCard, Product } from "../../molecules";
+import { ProductCard } from "../../molecules";
+import {Product} from "../../../lib/types";
+
 
 type Props = {
     products: Product[];

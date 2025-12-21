@@ -1,54 +1,100 @@
 import { create } from "zustand";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { apiGetAuth, apiPost } from "../lib/api";
+import type { LoginResponse, User } from "../lib/types";
 
-type AuthState = {
+const TOKEN_KEY = "token";
+
+type AuthStore = {
     login: string;
     password: string;
 
+    token: string | null;
+    user: User | null;
+    isHydrated: boolean;
+
     isLoading: boolean;
     error: string | null;
-    isAuthenticated: boolean;
 
     setLogin: (v: string) => void;
     setPassword: (v: string) => void;
 
+    hydrate: () => Promise<void>;
+    logout: () => Promise<void>;
+
     submit: () => Promise<boolean>;
-    reset: () => void;
+    fetchMe: () => Promise<void>;
 };
 
-export const useAuthStore = create<AuthState>((set, get) => ({
+export const useAuthStore = create<AuthStore>((set, get) => ({
     login: "",
     password: "",
 
+    token: null,
+    user: null,
+    isHydrated: false,
+
     isLoading: false,
     error: null,
-    isAuthenticated: false,
 
     setLogin: (v) => set({ login: v, error: null }),
     setPassword: (v) => set({ password: v, error: null }),
 
-    reset: () => set({ login: "", password: "", isLoading: false, error: null }),
+    hydrate: async () => {
+        const token = await AsyncStorage.getItem(TOKEN_KEY);
+        set({ token, isHydrated: true });
+
+        if (token) {
+            try {
+                await get().fetchMe();
+            } catch (e) {
+                // token invalid / me failed => logout clean
+                await get().logout();
+            }
+        }
+    },
+
+    logout: async () => {
+        await AsyncStorage.removeItem(TOKEN_KEY);
+        set({ token: null, user: null });
+    },
+
+    fetchMe: async () => {
+        const token = get().token;
+        if (!token) return;
+
+        // ✅ protected
+        const me = await apiGetAuth<User>("/users/me", token);
+        set({ user: me });
+    },
 
     submit: async () => {
         const { login, password } = get();
 
-        if (!login.trim() || !password.trim()) {
-            set({ error: "Login et mot de passe sont obligatoires." });
+        if (!login || !password) {
+            set({ error: "Email et mot de passe sont obligatoires." });
             return false;
         }
 
-        set({ isLoading: true, error: null });
-
         try {
-            // ✅ Remplace par ton API (axios/fetch)
-            await new Promise((r) => setTimeout(r, 700));
+            set({ isLoading: true, error: null });
 
-            // fake rule (juste pour tester)
-            if (password.length < 4) throw new Error("Identifiants invalides.");
+            // ✅ public
+            const data = await apiPost<LoginResponse>("/auth/login", {
+                email: login,
+                password,
+            });
 
-            set({ isAuthenticated: true, isLoading: false });
+            await AsyncStorage.setItem(TOKEN_KEY, data.token);
+            set({ token: data.token });
+
+            // ✅ get user
+            await get().fetchMe();
+
+            set({ isLoading: false });
             return true;
         } catch (e: any) {
-            set({ isLoading: false, error: e?.message ?? "Erreur de connexion." });
+            set({ isLoading: false, error: e?.message || "Erreur de connexion" });
             return false;
         }
     },
